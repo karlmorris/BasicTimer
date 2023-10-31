@@ -5,6 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,15 +22,26 @@ class MainActivity : AppCompatActivity() {
 
         countdownTextView = findViewById<TextView>(R.id.countdownTextView)
 
+        var coroutineScope: CoroutineScope? = null
+
         findViewById<Button>(R.id.startButton).setOnClickListener {
-            Thread {
+
+            // Cancel old job if any
+            coroutineScope?.cancel()
+
+            // Create new scope
+            coroutineScope = CoroutineScope(Dispatchers.Default)
+
+            coroutineScope?.launch {
                 repeat(100) {
                     val timer = (100-it).toString()
-                    Thread.sleep(1000)
+                    delay(1000)
                     Log.d("Countdown", timer)
-                    //countdownTextView.text = timer
+                    withContext(Dispatchers.Main) {
+                        countdownTextView.text = timer
+                    }
                 }
-            }.start()
+            }
         }
 
 
